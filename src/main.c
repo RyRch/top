@@ -1,3 +1,4 @@
+#include "../icl/top.h"
 #include <ncurses.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -24,9 +25,8 @@ char *open_read(const char *file) {
     char c;
 
     fd = open(file, O_RDONLY);
-    if (fd == -1) {
+    if (fd == -1)
         return NULL;
-    }
     count = count_chars(file);
     if (count == -1) {
         close(fd);
@@ -45,9 +45,16 @@ char *open_read(const char *file) {
 }
 
 int nb_proc(void) {
-    printf("%s\n", open_read("/proc/cpuinfo"));
+    char *cpuinfo = open_read("/proc/cpuinfo");
+    char **arr = str2arr(cpuinfo, ":\n");
+ 
+    for (int y = 0; arr[y] != NULL; y++) {
+        if (my_strstr(arr[y], "cpu cores"))
+            return atoi(arr[y+1]);
+    }
     return 0;
 }
+
 /*
 void window(void) {
     initscr();
@@ -62,6 +69,6 @@ int main(int ac, char **av) {
     (void)ac;
     (void)av;
     //window();
-    nb_proc();
+    printf("nb of cores : %d\n", nb_proc());
     return 0;
 }

@@ -1,10 +1,12 @@
-SRC	=	src/main.c
+SRC	=	src/main.c\
+		src/str2arr.c\
+		src/util.c
 
 BIN	=	top
 
 OBJ	=	$(SRC:.c=.o)
 
-CFLAGS	+=	-Wall -Werror -Wextra -g3
+CFLAGS	+=	-Wall -Werror -Wextra -g3 -Iicl/
 
 CC	=	gcc
 
