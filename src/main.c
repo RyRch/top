@@ -3,42 +3,44 @@
 #include <stdlib.h>
 #include <fcntl.h>
 
+int count_chars(const char *file) {
+    int count = 0;
+    int fd = 0;
+    char c;
+
+    fd = open(file, O_RDONLY);
+    if (fd == -1)
+        return -1;
+    while (read(fd, &c, 1) == 1)
+       count++; 
+    close(fd);
+    return count;
+}
+
 char *open_read(const char *file) {
     char *buf = NULL;
-    long count = 0;
-    long r;
-    FILE *fp = NULL;
+    int count = 0;
+    int fd = 0;
+    char c;
 
-    fp = fopen(file, "ra");
-    if (fp == NULL) {
+    fd = open(file, O_RDONLY);
+    if (fd == -1) {
         return NULL;
     }
-	if (fseek(fp, 0, SEEK_END) != 0) {
-		fclose(fp);
-		return NULL;
-	}
-	count = ftell(fp);
-	if (count == -1) {
-		fclose(fp);
-		return NULL;
-	}
-	if (fseek(fp, 0, SEEK_SET) != 0) {
-		fclose(fp);
-		return NULL;
-	}
-    buf = malloc(sizeof(char) * (count + 2));
+    count = count_chars(file);
+    if (count == -1) {
+        close(fd);
+        return NULL;
+    }
+    buf = malloc(sizeof(char) * (count + 1));
     if (buf == NULL) {
-        fclose(fp);
+        close(fd);
         return NULL;
     }
-    r = fread(buf, 1, count, fp);
-    if (r != count) {
-        fclose(fp);
-        free(buf);
-        return NULL;
-    }
+    for (int i = 0; read(fd, &c, 1) == 1; i++)
+        buf[i] = c;
     buf[count] = '\0';
-    fclose(fp);
+    close(fd);
     return buf;
 }
 
