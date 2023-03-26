@@ -23,8 +23,11 @@ int *count_cols(char *str, int rows, const char *charset) {
     int *cols = malloc(sizeof(int) * rows);
     int x = 0;
 
+    if (cols == NULL)
+        return NULL;
     for (int y = 0; y < rows; y++) {
-        for (;!is_charset(str[x], charset); x++)
+        cols[y] = 0;
+        for ( ;!is_charset(str[x], charset); x++)
             cols[y]++;
         x++;
     }
@@ -47,13 +50,15 @@ char **str2arr(char *str, const char *charset) {
     if (arr == NULL)
         return NULL;
     for (int y = 0; y < rows; y++) {
-        arr[y] = malloc(sizeof(char) * cols[y]);
+        arr[y] = malloc(sizeof(char) * cols[y] + 1);
         if (arr[y] == NULL)
             return NULL;
         for (int x = 0; x < cols[y]; x++, w++)
             arr[y][x] = str[w];
+        arr[y][cols[y]] = '\0';
         w++;
     } 
     arr[rows] = NULL;
+    free(cols);
     return arr;
 }
