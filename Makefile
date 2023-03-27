@@ -6,7 +6,7 @@ BIN	=	top
 
 OBJ	=	$(SRC:.c=.o)
 
-CFLAGS	+=	-Wall -Werror -Wextra -g3 -lncurses
+CFLAGS	+=	-Wall -Werror -Wextra -g3
 
 CC	=	gcc
 
