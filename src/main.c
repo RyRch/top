@@ -1,14 +1,4 @@
 #include "../icl/top.h"
-#include <ncurses.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <fcntl.h>
-
-typedef struct {
-    int id;
-    float freq;
-} cores;
 
 int count_chars(const char *file) {
     int count = 0;
@@ -30,10 +20,8 @@ char *open_read(const char *file) {
     int fd = 0;
     char c;
 
-    if (fd == -1)
-        return NULL;
     count = count_chars(file);
-    if (count == -1)
+    if (count == -1 || count == 0)
         return NULL;
     buf = malloc(sizeof(char) * (count + 1));
     if (buf == NULL)
@@ -65,7 +53,7 @@ int nb_proc(char *cpuinfo, char **arr) {
 }
 
 void fill_stCores(cores *core) {
-    char *cpuinfo = open_read("/proc/cpuinfo");
+    char *cpuinfo = open_read(cpu_path);
     char **arr = str2arr(cpuinfo, ":\n");
 
     free(cpuinfo);
@@ -78,16 +66,36 @@ void fill_stCores(cores *core) {
     }
 }
 
+int *freq_limit(void) {
+    int *liFreq = NULL;
+
+    liFreq = malloc(sizeof(int) * 2);
+    if (liFreq == NULL)
+        return NULL;
+    liFreq[0] = atoi(open_read((const char *)my_strconc(freq_path, max_freq_path)));
+    liFreq[1] = atoi(open_read((const char *)my_strconc(freq_path, min_freq_path)));
+    return liFreq;
+}
+
 void print_cores(cores *core, int nbProc) {
-    int maxx;
-    int maxy;
+    int maxx = 0;
+    int maxy = 0;
+    int xhalf = 0;
 
     (void)maxy;
     fill_stCores(core);
     getmaxyx(stdscr, maxy, maxx);
+    xhalf = maxx/2;
+    int *fl = freq_limit();
+    printw("max = %d, min = %d", fl[0], fl[1]);
+    refresh();
     for (int i = 0; i < nbProc; i++) {
-        mvprintw(8+i, ((maxx/2)/2),
-                "CPU%d : %f MHz", core[i].id, core[i].freq);
+        if (i % 2 == 0)
+            mvprintw(3+i, (xhalf/2),
+                    "CPU%d : %f MHz", core[i].id, core[i].freq);
+        else 
+            mvprintw(3+i-1, (xhalf+xhalf/2),
+                    "CPU%d : %f MHz", core[i].id, core[i].freq);
         refresh();
     }
 }
@@ -111,12 +119,11 @@ void window(cores *core, int nbProc) {
 int main(int ac, char **av) {
     (void)ac;
     (void)av;
-    char *cpuinfo = open_read("/proc/cpuinfo");
+    char *cpuinfo = open_read(cpu_path);
     char **arr = str2arr(cpuinfo, ":\n");
     int nbProc = nb_proc(cpuinfo, arr);
     cores core[nbProc];
 
-    fill_stCores(core);
     window(core, nbProc);
     return 0;
 }
