@@ -66,14 +66,16 @@ void fill_stCores(cores *core) {
     }
 }
 
-int *freq_limit(void) {
-    int *liFreq = NULL;
+float *freq_limit(void) {
+    float *liFreq = NULL;
 
     liFreq = malloc(sizeof(int) * 2);
     if (liFreq == NULL)
         return NULL;
-    liFreq[0] = atoi(open_read((const char *)my_strconc(freq_path, max_freq_path)));
-    liFreq[1] = atoi(open_read((const char *)my_strconc(freq_path, min_freq_path)));
+    liFreq[0] = atof(open_read((const char *)my_strconc(freq_path, max_freq_path)));
+    liFreq[1] = atof(open_read((const char *)my_strconc(freq_path, min_freq_path)));
+    liFreq[0] = liFreq[0] / 1000000;
+    liFreq[1] = liFreq[1] / 1000000;
     return liFreq;
 }
 
@@ -86,16 +88,16 @@ void print_cores(cores *core, int nbProc) {
     fill_stCores(core);
     getmaxyx(stdscr, maxy, maxx);
     xhalf = maxx/2;
-    int *fl = freq_limit();
-    printw("max = %d, min = %d", fl[0], fl[1]);
+    float *fl = freq_limit();
+    printw("max = %.1f GHz, min = %.1f GHz", fl[0], fl[1]);
     refresh();
     for (int i = 0; i < nbProc; i++) {
         if (i % 2 == 0)
             mvprintw(3+i, (xhalf/2),
-                    "CPU%d : %f MHz", core[i].id, core[i].freq);
+                    "CPU%d : %.1f GHz", core[i].id, core[i].freq/1000);
         else 
             mvprintw(3+i-1, (xhalf+xhalf/2),
-                    "CPU%d : %f MHz", core[i].id, core[i].freq);
+                    "CPU%d : %.1f GHz", core[i].id, core[i].freq/1000);
         refresh();
     }
 }
