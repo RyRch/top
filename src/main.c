@@ -72,14 +72,21 @@ float *freq_limit(void) {
     liFreq = malloc(sizeof(int) * 2);
     if (liFreq == NULL)
         return NULL;
-    liFreq[0] = atof(open_read((const char *)my_strconc(freq_path, max_freq_path)));
-    liFreq[1] = atof(open_read((const char *)my_strconc(freq_path, min_freq_path)));
+    liFreq[0] = atof(open_read((const char *)
+                my_strconc(freq_path, max_freq_path)));
+    liFreq[1] = atof(open_read((const char *)
+                my_strconc(freq_path, min_freq_path)));
     liFreq[0] = liFreq[0] / 1000000;
     liFreq[1] = liFreq[1] / 1000000;
     return liFreq;
 }
 
+float get_percentage(float max, float min, float value) {
+    return (((value-min) / (max - min)) * 100);
+}
+
 void print_cores(cores *core, int nbProc) {
+    float *fl = NULL;
     int maxx = 0;
     int maxy = 0;
     int xhalf = 0;
@@ -88,17 +95,37 @@ void print_cores(cores *core, int nbProc) {
     fill_stCores(core);
     getmaxyx(stdscr, maxy, maxx);
     xhalf = maxx/2;
-    float *fl = freq_limit();
-    printw("max = %.1f GHz, min = %.1f GHz", fl[0], fl[1]);
-    refresh();
+    fl = freq_limit();
     for (int i = 0; i < nbProc; i++) {
         if (i % 2 == 0)
             mvprintw(3+i, (xhalf/2),
-                    "CPU%d : %.1f GHz", core[i].id, core[i].freq/1000);
+                    "CPU%d : %.1f%%", core[i].id, 
+                    get_percentage(fl[0], fl[1], core[i].freq/1000));
         else 
             mvprintw(3+i-1, (xhalf+xhalf/2),
-                    "CPU%d : %.1f GHz", core[i].id, core[i].freq/1000);
+                    "CPU%d : %.1f%%", core[i].id, 
+                    get_percentage(fl[0], fl[1], core[i].freq/1000));
         refresh();
+    }
+}
+
+void print_mem(void) {
+    char *meminfo = open_read(mem_path);
+    char **arr = str2arr(meminfo, ":\n");
+    
+    for (int i = 0; arr[i] != NULL; i++) {
+        if (my_strstr(arr[i], "MemAvailable")) {
+            printw("\n\n  Mem : %s/", arr[i+1]);
+            refresh();
+            break;
+        }
+    }
+    for (int i = 0; arr[i] != NULL; i++) {
+        if (my_strstr(arr[i], "MemTotal")) {
+            printw("%s", arr[i+1]);
+            refresh();
+            break;
+        }
     }
 }
 
@@ -112,6 +139,7 @@ void window(cores *core, int nbProc) {
     while ((ch = getch()) != 113) {
         clear();
         print_cores(core, nbProc);
+        print_mem();
         sleep(1);
     }
     refresh();

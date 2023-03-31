@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include <stdbool.h>
 
+#define mem_path "/proc/meminfo"
 #define cpu_path "/proc/cpuinfo"
 #define freq_path "/sys/devices/system/cpu/cpufreq/policy0/"
 #define max_freq_path "cpuinfo_max_freq" 
