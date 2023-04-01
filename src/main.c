@@ -52,7 +52,7 @@ int nb_proc(char *cpuinfo, char **arr) {
     return 0;
 }
 
-void fill_stCores(cores *core) {
+void fill_stCores(st_cores *core) {
     char *cpuinfo = open_read(cpu_path);
     char **arr = str2arr(cpuinfo, ":\n");
 
@@ -81,11 +81,13 @@ float *freq_limit(void) {
     return liFreq;
 }
 
+/*
 float get_percentage(float max, float min, float value) {
     return (((value-min) / (max - min)) * 100);
 }
+*/
 
-void print_cores(cores *core, int nbProc) {
+void print_st_cores(st_cores *core, int nbProc) {
     float *fl = NULL;
     int maxx = 0;
     int maxy = 0;
@@ -99,37 +101,40 @@ void print_cores(cores *core, int nbProc) {
     for (int i = 0; i < nbProc; i++) {
         if (i % 2 == 0)
             mvprintw(3+i, (xhalf/2),
-                    "CPU%d : %.1f%%", core[i].id, 
-                    get_percentage(fl[0], fl[1], core[i].freq/1000));
+                    "CPU%d : %.1f GHz", core[i].id, core[i].freq/1000);
         else 
             mvprintw(3+i-1, (xhalf+xhalf/2),
-                    "CPU%d : %.1f%%", core[i].id, 
-                    get_percentage(fl[0], fl[1], core[i].freq/1000));
+                    "CPU%d : %.1f GHz", core[i].id, core[i].freq/1000);
         refresh();
     }
+    free(fl);
 }
 
-void print_mem(void) {
+void mem_usage(void) {
     char *meminfo = open_read(mem_path);
     char **arr = str2arr(meminfo, ":\n");
+    char **mem = NULL;
     
+    free(meminfo);
+    mem = malloc(sizeof(char *) * 2);
+    /*
+    if (mem == NULL)
+        return NULL;
+        */
     for (int i = 0; arr[i] != NULL; i++) {
-        if (my_strstr(arr[i], "MemAvailable")) {
-            printw("\n\n  Mem : %s/", arr[i+1]);
-            refresh();
-            break;
-        }
+        if (my_strstr(arr[i], "MemTotal"))
+            mem[TOTAL] = my_strdup(arr[i+1]);
+        if (my_strstr(arr[i], "MemAvailable"))
+            mem[AVAILABLE] = my_strdup(arr[i+1]);
+        free(arr[i]);
     }
-    for (int i = 0; arr[i] != NULL; i++) {
-        if (my_strstr(arr[i], "MemTotal")) {
-            printw("%s", arr[i+1]);
-            refresh();
-            break;
-        }
-    }
+    printw("\n\n   Mem : %s/%s", mem[AVAILABLE], mem[TOTAL]);
+    refresh();
+    free(mem[0]);
+    free(mem[1]);
 }
 
-void window(cores *core, int nbProc) {
+void window(st_cores *core, int nbProc) {
     int ch = 0;
 
     initscr();
@@ -138,8 +143,8 @@ void window(cores *core, int nbProc) {
     nodelay(stdscr, TRUE);
     while ((ch = getch()) != 113) {
         clear();
-        print_cores(core, nbProc);
-        print_mem();
+        print_st_cores(core, nbProc);
+        mem_usage();
         sleep(1);
     }
     refresh();
@@ -152,7 +157,7 @@ int main(int ac, char **av) {
     char *cpuinfo = open_read(cpu_path);
     char **arr = str2arr(cpuinfo, ":\n");
     int nbProc = nb_proc(cpuinfo, arr);
-    cores core[nbProc];
+    st_cores core[nbProc];
 
     window(core, nbProc);
     return 0;

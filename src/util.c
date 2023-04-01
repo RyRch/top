@@ -24,6 +24,26 @@ bool my_strstr(char *src, char *str) {
     return false;
 }
 
+void my_strcpy(char *src, char *str) {
+    int i = 0;
+
+    for ( ; src[i] != '\0'; i++)
+        str[i] = src[i];
+    str[i] = '\0';
+}
+
+char *my_strdup(char *src) {
+    char *str = NULL;
+    int size = 0;
+
+    size = my_strlen(src);
+    str = malloc(sizeof(char) * (size + 1));
+    if (str == NULL)
+        return NULL;
+    my_strcpy(src, str);
+    return str;
+}
+
 char *my_strconc(char *s1, char *s2) {
     char *str = NULL;
     int size = 0;
