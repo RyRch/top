@@ -36,7 +36,9 @@ char *open_read(const char *file) {
     return buf;
 }
 
-int nb_proc(char *cpuinfo, char **arr) {
+int nb_proc(void) {
+    char *cpuinfo = open_read(cpu_path);
+    char **arr = str2arr(cpuinfo, ":\n");
     int rows = count_rows(cpuinfo, ":\n");
     int nb = 0;
 
@@ -53,61 +55,44 @@ int nb_proc(char *cpuinfo, char **arr) {
 }
 
 void fill_stCores(st_cores *core) {
-    char *cpuinfo = open_read(cpu_path);
-    char **arr = str2arr(cpuinfo, ":\n");
+    char *cpustat = open_read(cpu_stat);
+    char **arr = str2arr(cpustat, "\n");
+    char **tab = NULL;
+    int nbProc = nb_proc() + 1;
 
-    free(cpuinfo);
-    for (int y = 0, w = 0; arr[y] != NULL; y++) {
-        if (my_strstr(arr[y], "processor"))
-            core[w].id = atoi(arr[y+1]);
-        if (my_strstr(arr[y], "cpu MHz"))
-            core[w++].freq = atof(arr[y+1]);
-        free(arr[y]);
+    for (int y = 1, w = 0; y < nbProc; y++) {
+        //printw("\narr[%d] = %s\n", y, arr[y]);
+        //refresh();
+        tab = str2arr(arr[y], " ");
+        if (my_strstr(tab[0], "cpu"))
+            core[w++].id = atoi(&tab[0][my_strlen(tab[0]) - 1]);
+        //free(tab[0]);
+        /*
+        for (int i = 1, u = 0; tab[i] != NULL; i++) {
+            core->prev_iddle[u++] = atoi(tab[i]);  
+            free(tab[i]);
+        }
+        */
+        //free(arr[y]);
     }
 }
 
-float *freq_limit(void) {
-    float *liFreq = NULL;
-
-    liFreq = malloc(sizeof(int) * 2);
-    if (liFreq == NULL)
-        return NULL;
-    liFreq[0] = atof(open_read((const char *)
-                my_strconc(freq_path, max_freq_path)));
-    liFreq[1] = atof(open_read((const char *)
-                my_strconc(freq_path, min_freq_path)));
-    liFreq[0] = liFreq[0] / 1000000;
-    liFreq[1] = liFreq[1] / 1000000;
-    return liFreq;
-}
-
-/*
-float get_percentage(float max, float min, float value) {
-    return (((value-min) / (max - min)) * 100);
-}
-*/
-
-void print_st_cores(st_cores *core, int nbProc) {
-    float *fl = NULL;
+void print_st_cores(st_cores *core) {
     int maxx = 0;
     int maxy = 0;
     int xhalf = 0;
-
+    int nbProc = nb_proc();
     (void)maxy;
     fill_stCores(core);
     getmaxyx(stdscr, maxy, maxx);
     xhalf = maxx/2;
-    fl = freq_limit();
     for (int i = 0; i < nbProc; i++) {
         if (i % 2 == 0)
-            mvprintw(3+i, (xhalf/2),
-                    "CPU%d : %.1f GHz", core[i].id, core[i].freq/1000);
+            mvprintw(3+i, (xhalf/2), "CPU %d ", core[i].id);
         else 
-            mvprintw(3+i-1, (xhalf+xhalf/2),
-                    "CPU%d : %.1f GHz", core[i].id, core[i].freq/1000);
+            mvprintw(3+i-1, (xhalf+xhalf/2), "CPU %d ", core[i].id);
         refresh();
     }
-    free(fl);
 }
 
 void mem_usage(void) {
@@ -117,10 +102,8 @@ void mem_usage(void) {
     
     free(meminfo);
     mem = malloc(sizeof(char *) * 2);
-    /*
     if (mem == NULL)
-        return NULL;
-        */
+        return;
     for (int i = 0; arr[i] != NULL; i++) {
         if (my_strstr(arr[i], "MemTotal"))
             mem[TOTAL] = my_strdup(arr[i+1]);
@@ -128,13 +111,13 @@ void mem_usage(void) {
             mem[AVAILABLE] = my_strdup(arr[i+1]);
         free(arr[i]);
     }
-    printw("\n\n   Mem : %s/%s", mem[AVAILABLE], mem[TOTAL]);
+    printw("Mem : %s/%s", mem[AVAILABLE], mem[TOTAL]);
     refresh();
     free(mem[0]);
     free(mem[1]);
 }
 
-void window(st_cores *core, int nbProc) {
+void window(st_cores *core) {
     int ch = 0;
 
     initscr();
@@ -143,9 +126,9 @@ void window(st_cores *core, int nbProc) {
     nodelay(stdscr, TRUE);
     while ((ch = getch()) != 113) {
         clear();
-        print_st_cores(core, nbProc);
         mem_usage();
-        sleep(1);
+        print_st_cores(core);
+        sleep(2);
     }
     refresh();
     endwin();
@@ -154,11 +137,8 @@ void window(st_cores *core, int nbProc) {
 int main(int ac, char **av) {
     (void)ac;
     (void)av;
-    char *cpuinfo = open_read(cpu_path);
-    char **arr = str2arr(cpuinfo, ":\n");
-    int nbProc = nb_proc(cpuinfo, arr);
-    st_cores core[nbProc];
+    st_cores core[nb_proc()];
 
-    window(core, nbProc);
+    window(core);
     return 0;
 }

@@ -10,9 +10,7 @@
 
 #define mem_path "/proc/meminfo"
 #define cpu_path "/proc/cpuinfo"
-#define freq_path "/sys/devices/system/cpu/cpufreq/policy0/"
-#define max_freq_path "cpuinfo_max_freq" 
-#define min_freq_path "cpuinfo_min_freq" 
+#define cpu_stat "/proc/stat"
 
 typedef enum {
     TOTAL = 0,
@@ -21,20 +19,32 @@ typedef enum {
 
 typedef struct {
     int id;
-    //int temp;
-    float freq;
+    int prev_iddle[10];
+    int cur_iddle[10];
 } st_cores;
 
 int count_chars(const char *file);
+
 char *open_read(const char *file);
-int nb_proc(char *cpuinfo, char **arr);
+
+int nb_proc(void);
+
 bool is_charset(char c, const char *charset);
+
 int count_rows(char *str, const char *charset);
+
 int *count_cols(char *str, int rows, const char *charset);
+
 char **str2arr(char *str, const char *charset);
+
 bool my_strcmp(char *s1, char *s2);
+
 bool my_strstr(char *src, char *str);
+
 char *my_strconc(char *s1, char *s2);
+
 char *my_strdup(char *src);
+
+int my_strlen(char *str);
 
 #endif
