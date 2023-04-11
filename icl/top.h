@@ -19,8 +19,8 @@ typedef enum {
 
 typedef struct {
     int id;
-    int prev_iddle[10];
-    int cur_iddle[10];
+    long prev_iddle;
+    long cur_iddle;
 } st_cores;
 
 int count_chars(const char *file);

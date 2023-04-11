@@ -46,12 +46,12 @@ int nb_proc(void) {
     for (int y = rows - 1; y > 0; y--) {
         if (my_strstr(arr[y], "processor")) {
             nb = atoi(arr[y+1]) + 1;
-            return nb;
+            break;
         }
     }
     for (int y = 0; arr[y] != NULL; y++)
         free(arr[y]);
-    return 0;
+    return nb;
 }
 
 void fill_stCores(st_cores *core) {
@@ -60,20 +60,17 @@ void fill_stCores(st_cores *core) {
     char **tab = NULL;
     int nbProc = nb_proc() + 1;
 
-    for (int y = 1, w = 0; y < nbProc; y++) {
-        //printw("\narr[%d] = %s\n", y, arr[y]);
-        //refresh();
+    free(cpustat);
+    for (int y = 1, w = 0, u = 0; y < nbProc; y++) {
         tab = str2arr(arr[y], " ");
         if (my_strstr(tab[0], "cpu"))
             core[w++].id = atoi(&tab[0][my_strlen(tab[0]) - 1]);
-        //free(tab[0]);
-        /*
-        for (int i = 1, u = 0; tab[i] != NULL; i++) {
-            core->prev_iddle[u++] = atoi(tab[i]);  
+        for (int i = 1; tab[i] != NULL; i++) {
+            core[u].prev_iddle += atoi(tab[i]);
             free(tab[i]);
         }
-        */
-        //free(arr[y]);
+        u++;
+        free(arr[y]);
     }
 }
 
@@ -82,16 +79,21 @@ void print_st_cores(st_cores *core) {
     int maxy = 0;
     int xhalf = 0;
     int nbProc = nb_proc();
+
     (void)maxy;
     fill_stCores(core);
     getmaxyx(stdscr, maxy, maxx);
     xhalf = maxx/2;
     for (int i = 0; i < nbProc; i++) {
-        if (i % 2 == 0)
-            mvprintw(3+i, (xhalf/2), "CPU %d ", core[i].id);
-        else 
-            mvprintw(3+i-1, (xhalf+xhalf/2), "CPU %d ", core[i].id);
-        refresh();
+        if (i % 2 == 0) {
+            mvprintw(3+i, (xhalf/2),
+                    "CPU %d : %ld", core[i].id, core[i].prev_iddle);
+            refresh();
+        } else {
+            mvprintw(3+i-1, (xhalf+xhalf/2), 
+                    "CPU %d : %ld", core[i].id, core[i].prev_iddle);
+            refresh();
+        }
     }
 }
 
@@ -128,7 +130,7 @@ void window(st_cores *core) {
         clear();
         mem_usage();
         print_st_cores(core);
-        sleep(2);
+        sleep(1);
     }
     refresh();
     endwin();
