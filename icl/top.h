@@ -10,7 +10,7 @@
 
 #define mem_path "/proc/meminfo"
 #define cpu_path "/proc/cpuinfo"
-#define cpu_stat "/proc/stat"
+#define cpu_stat "/home/rr/Documents/Github/top/stat.txt"
 
 typedef enum {
     TOTAL = 0,
@@ -19,8 +19,8 @@ typedef enum {
 
 typedef struct {
     int id;
-    long prev_iddle;
-    long cur_iddle;
+    int prev_iddle[10];
+    int cur_iddle[10];
 } st_cores;
 
 int count_chars(const char *file);

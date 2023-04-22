@@ -65,15 +65,20 @@ void fill_stCores(st_cores *core) {
         tab = str2arr(arr[y], " ");
         if (my_strstr(tab[0], "cpu"))
             core[w++].id = atoi(&tab[0][my_strlen(tab[0]) - 1]);
-        for (int i = 1; tab[i] != NULL; i++) {
-            core[u].prev_iddle += atoi(tab[i]);
+        printf("cpu[%d] = ", core[u].id);
+        for (int i = 1, p = 0; tab[i] != NULL; i++) {
+            core[u].prev_iddle[p] = atoi(tab[i]);
+            printf(" %d ", core[u].prev_iddle[p]);
+            p++;
             free(tab[i]);
         }
+        printf("\n");
         u++;
         free(arr[y]);
     }
 }
 
+/*
 void print_st_cores(st_cores *core) {
     int maxx = 0;
     int maxy = 0;
@@ -128,7 +133,7 @@ void window(st_cores *core) {
     nodelay(stdscr, TRUE);
     while ((ch = getch()) != 113) {
         clear();
-        mem_usage();
+        //mem_usage();
         print_st_cores(core);
         sleep(1);
     }
@@ -136,11 +141,14 @@ void window(st_cores *core) {
     endwin();
 }
 
+*/
+
 int main(int ac, char **av) {
     (void)ac;
     (void)av;
     st_cores core[nb_proc()];
 
-    window(core);
+    fill_stCores(core);
+    //window(core);
     return 0;
 }
