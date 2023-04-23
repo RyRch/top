@@ -65,17 +65,33 @@ void fill_stCores(st_cores *core) {
         tab = str2arr(arr[y], " ");
         if (my_strstr(tab[0], "cpu"))
             core[w++].id = atoi(&tab[0][my_strlen(tab[0]) - 1]);
-        printf("cpu[%d] = ", core[u].id);
         for (int i = 1, p = 0; tab[i] != NULL; i++) {
-            core[u].prev_iddle[p] = atoi(tab[i]);
-            printf(" %d ", core[u].prev_iddle[p]);
-            p++;
+            core[u].stats[p] = atoi(tab[i]);
+			core[u].total += core[u].stats[p++];
             free(tab[i]);
         }
-        printf("\n");
         u++;
         free(arr[y]);
     }
+}
+
+int main(int ac, char **av) {
+    (void)ac;
+    (void)av;
+    st_cores core[nb_proc()];
+	float usage;
+	
+    while (1) {
+        fill_stCores(core);
+        for (int i = 0; i < nb_proc(); i++) {
+            usage = 100.0 * (core[i].total - core[i].stats[IDLE]) / core[i].total;
+            printf("core[%d] = %.1f%%\n", i, usage);
+        }	
+        printf("\n");
+        sleep(2);
+    }
+    //window(core);
+    return 0;
 }
 
 /*
@@ -140,15 +156,4 @@ void window(st_cores *core) {
     refresh();
     endwin();
 }
-
 */
-
-int main(int ac, char **av) {
-    (void)ac;
-    (void)av;
-    st_cores core[nb_proc()];
-
-    fill_stCores(core);
-    //window(core);
-    return 0;
-}
