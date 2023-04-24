@@ -54,7 +54,7 @@ int nb_proc(void) {
     return nb;
 }
 
-void fill_stCores(st_cores *core) {
+void fill_stCores(st_cores *core, en_state STATE) {
     char *cpustat = open_read(cpu_stat);
     char **arr = str2arr(cpustat, "\n");
     char **tab = NULL;
@@ -65,11 +65,12 @@ void fill_stCores(st_cores *core) {
         tab = str2arr(arr[y], " ");
         if (my_strstr(tab[0], "cpu"))
             core[w++].id = atoi(&tab[0][my_strlen(tab[0]) - 1]);
-        for (int i = 1, p = 0; tab[i] != NULL; i++) {
+        for (int i = 1, p = 0; atoi(tab[i]) != 0; i++) {
             core[u].stats[p] = atoi(tab[i]);
-			core[u].total += core[u].stats[p++];
+			core[u].total[STATE] += core[u].stats[p++];
             free(tab[i]);
         }
+        core[u].idle[STATE] = core[u].stats[IDLE];
         u++;
         free(arr[y]);
     }
@@ -79,16 +80,23 @@ int main(int ac, char **av) {
     (void)ac;
     (void)av;
     st_cores core[nb_proc()];
-	float usage;
-	
+	long double usage;
+    long int diff_total;
+    long int diff_idle;
+
+    fill_stCores(core, PREV);
     while (1) {
-        fill_stCores(core);
-        for (int i = 0; i < nb_proc(); i++) {
-            usage = 100.0 * (core[i].total - core[i].stats[IDLE]) / core[i].total;
-            printf("core[%d] = %.1f%%\n", i, usage);
-        }	
+        fill_stCores(core, CUR);
+        for (int u = 0; u < nb_proc(); u++) {
+            diff_total = core[u].total[CUR] - core[u].total[PREV];
+            diff_idle = core[u].idle[CUR] - core[u].idle[PREV];
+            usage = 100.0 * ((diff_total - diff_idle) / diff_total);
+            printf("cpu%d : %.1Lf%%\n", core[u].id, usage);
+            core[u].total[PREV] = core[u].total[CUR];
+            core[u].idle[PREV] = core[u].idle[CUR]; 
+        }
+        sleep(1);
         printf("\n");
-        sleep(2);
     }
     //window(core);
     return 0;
@@ -131,10 +139,10 @@ void mem_usage(void) {
         if (my_strstr(arr[i], "MemTotal"))
             mem[TOTAL] = my_strdup(arr[i+1]);
         if (my_strstr(arr[i], "MemAvailable"))
-            mem[AVAILABLE] = my_strdup(arr[i+1]);
+            mem[AVAIL] = my_strdup(arr[i+1]);
         free(arr[i]);
     }
-    printw("Mem : %s/%s", mem[AVAILABLE], mem[TOTAL]);
+    printw("Mem : %s/%s", mem[AVAIL], mem[TOTAL]);
     refresh();
     free(mem[0]);
     free(mem[1]);

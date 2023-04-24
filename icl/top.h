@@ -15,13 +15,19 @@
 
 typedef enum {
     TOTAL = 0,
-    AVAILABLE
+    AVAIL
 } en_mem;
+
+typedef enum {
+    PREV = 0,
+    CUR
+} en_state;
 
 typedef struct {
     int id;
-    int stats[10];
-	long long int total;
+    int stats[8];
+    int idle[2];
+    long long int total[2];
 } st_cores;
 
 int count_chars(const char *file);
