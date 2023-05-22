@@ -12,8 +12,8 @@ bool is_charset(char c, const char *charset) {
 int count_rows(char *str, const char *charset) {
     int rows = 0;
 
-    for (int i = 0; str[i] != '\0'; i++) {
-        if (is_charset(str[i], charset))
+    for (int i = 1; str[i] != '\0'; i++) {
+        if (is_charset(str[i], charset) && (!is_charset(str[i+1], charset)))
             rows++;
     }
     return rows;

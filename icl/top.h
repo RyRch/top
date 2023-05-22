@@ -11,7 +11,9 @@
 #define mem_path "/proc/meminfo"
 #define cpu_path "/proc/cpuinfo"
 #define cpu_stat "/proc/stat"
+#define swap_path "/proc/swaps"
 #define IDLE 3
+#define IOWAIT 4
 
 typedef enum {
     TOTAL = 0,
@@ -27,6 +29,7 @@ typedef struct {
     int id;
     int stats[8];
     int idle[2];
+    int iow[2];
     long long int total[2];
 } st_cores;
 

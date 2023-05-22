@@ -1,4 +1,0 @@
-1 = https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/
-2 = https://invisible-island.net/ncurses/ncurses-intro.html
-3 = https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/intro.html
-4 = http://www.cs.ukzn.ac.za/~hughm/os/notes/ncurses.html

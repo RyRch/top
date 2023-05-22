@@ -36,6 +36,72 @@ char *open_read(const char *file) {
     return buf;
 }
 
+void mem_usage(void) {
+    char *meminfo = open_read(mem_path);
+    char **arr = str2arr(meminfo, ":\n");
+    char **mem = NULL;
+    
+    free(meminfo);
+    mem = malloc(sizeof(char *) * 2);
+    if (mem == NULL)
+        return;
+    for (int i = 0; arr[i] != NULL; i++) {
+        if (my_strstr(arr[i], "MemTotal"))
+            mem[TOTAL] = my_strdup(arr[i+1]);
+        if (my_strstr(arr[i], "MemAvailable"))
+            mem[AVAIL] = my_strdup(arr[i+1]);
+        free(arr[i]);
+    }
+    printw("Mem : %s/%s\n", mem[AVAIL], mem[TOTAL]);
+    refresh();
+    free(mem[0]);
+    free(mem[1]);
+}
+
+void swap_usage(void) {
+    char *swapinfo = open_read(swap_path);
+    char **arr = str2arr(swapinfo, "\n");
+    
+    printw("Swap : %s\n", arr[1]);
+    for (int i = 0; arr[1][i] != '\0'; i++) {
+        if (arr[1][i] == ' ') {
+            printw("SPACEEE!!!!\n");
+            refresh();
+        }
+        if (arr[1][i] == '\t') {
+            printw("TABBBBB!!!!\n");
+            refresh();
+        }
+    }
+    //printw("Swap : %s\n", arr[1]);
+    refresh();
+}
+
+void window(void) {
+    int ch = 0;
+
+    initscr();
+    noecho();
+    curs_set(0);
+    nodelay(stdscr, TRUE);
+    while ((ch = getch()) != 113) {
+        clear();
+        mem_usage();
+        swap_usage();
+        //print_st_cores(core);
+        sleep(1);
+    }
+    refresh();
+    endwin();
+}
+int main(int ac, char **av) {
+    (void)ac;
+    (void)av;
+    window();
+    return 0;
+}
+
+/*
 int nb_proc(void) {
     char *cpuinfo = open_read(cpu_path);
     char **arr = str2arr(cpuinfo, ":\n");
@@ -70,39 +136,12 @@ void fill_stCores(st_cores *core, en_state STATE) {
 			core[u].total[STATE] += core[u].stats[p++];
             free(tab[i]);
         }
-        core[u].idle[STATE] = core[u].stats[IDLE];
+        core[u].idle[STATE] = core[u].stats[IDLE] + core[u].stats[IOWAIT];
         u++;
         free(arr[y]);
     }
 }
 
-int main(int ac, char **av) {
-    (void)ac;
-    (void)av;
-    st_cores core[nb_proc()];
-	long double usage;
-    long int diff_total;
-    long int diff_idle;
-
-    fill_stCores(core, PREV);
-    while (1) {
-        fill_stCores(core, CUR);
-        for (int u = 0; u < nb_proc(); u++) {
-            diff_total = core[u].total[CUR] - core[u].total[PREV];
-            diff_idle = core[u].idle[CUR] - core[u].idle[PREV];
-            usage = 100.0 * ((diff_total - diff_idle) / diff_total);
-            printf("cpu%d : %.1Lf%%\n", core[u].id, usage);
-            core[u].total[PREV] = core[u].total[CUR];
-            core[u].idle[PREV] = core[u].idle[CUR]; 
-        }
-        sleep(1);
-        printf("\n");
-    }
-    //window(core);
-    return 0;
-}
-
-/*
 void print_st_cores(st_cores *core) {
     int maxx = 0;
     int maxy = 0;
@@ -124,44 +163,5 @@ void print_st_cores(st_cores *core) {
             refresh();
         }
     }
-}
-
-void mem_usage(void) {
-    char *meminfo = open_read(mem_path);
-    char **arr = str2arr(meminfo, ":\n");
-    char **mem = NULL;
-    
-    free(meminfo);
-    mem = malloc(sizeof(char *) * 2);
-    if (mem == NULL)
-        return;
-    for (int i = 0; arr[i] != NULL; i++) {
-        if (my_strstr(arr[i], "MemTotal"))
-            mem[TOTAL] = my_strdup(arr[i+1]);
-        if (my_strstr(arr[i], "MemAvailable"))
-            mem[AVAIL] = my_strdup(arr[i+1]);
-        free(arr[i]);
-    }
-    printw("Mem : %s/%s", mem[AVAIL], mem[TOTAL]);
-    refresh();
-    free(mem[0]);
-    free(mem[1]);
-}
-
-void window(st_cores *core) {
-    int ch = 0;
-
-    initscr();
-    noecho();
-    curs_set(0);
-    nodelay(stdscr, TRUE);
-    while ((ch = getch()) != 113) {
-        clear();
-        //mem_usage();
-        print_st_cores(core);
-        sleep(1);
-    }
-    refresh();
-    endwin();
 }
 */
