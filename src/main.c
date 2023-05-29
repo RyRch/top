@@ -58,22 +58,36 @@ void mem_usage(void) {
     free(mem[1]);
 }
 
+char *clean_swap(char *s) {
+    char *cswap = NULL;
+    char *str = NULL;
+    int u = 0;
+
+    cswap = malloc(sizeof(char) * my_strlen(s) + 1);
+    for (int i = 0; s[i] != '\0'; i++) {
+        if (s[i] == ' ' || s[i] == '\t')
+            cswap[u++] = '?';
+        else
+            cswap[u++] = s[i];
+    }
+    cswap[u] = '\0';
+    u = 0;
+    str = malloc(sizeof(char) * my_strlen(cswap));
+    for (int i = 0; cswap[i] != '\0'; i++) {
+        if (cswap[i] == '?' && (cswap[i-1] != '?' && cswap[i-1] != '\n'))
+            str[u++] = ' ';
+        else if (cswap[i] != '?')
+            str[u++] = cswap[i];
+    }
+    str[u] = '\0';
+    return str;
+}
+
 void swap_usage(void) {
     char *swapinfo = open_read(swap_path);
-    char **arr = str2arr(swapinfo, "\n");
-    
-    printw("Swap : %s\n", arr[1]);
-    for (int i = 0; arr[1][i] != '\0'; i++) {
-        if (arr[1][i] == ' ') {
-            printw("SPACEEE!!!!\n");
-            refresh();
-        }
-        if (arr[1][i] == '\t') {
-            printw("TABBBBB!!!!\n");
-            refresh();
-        }
-    }
-    //printw("Swap : %s\n", arr[1]);
+    char **arr = str2arr(clean_swap(swapinfo), " \n");
+
+    printw("Swap : %s kB /%s kB\n", arr[8], arr[7]);
     refresh();
 }
 
