@@ -91,6 +91,14 @@ void swap_usage(void) {
     refresh();
 }
 
+void get_uptime(void) {
+    char *uptime = open_read("/proc/uptime");
+
+    printw("Uptime : %s\n", uptime);
+    refresh();
+    free(uptime);
+}
+
 void window(void) {
     int ch = 0;
 
@@ -102,6 +110,7 @@ void window(void) {
         clear();
         mem_usage();
         swap_usage();
+        get_uptime();
         //print_st_cores(core);
         sleep(1);
     }
